@@ -33,12 +33,18 @@ def main():
     br.set_handle_robots(False)
 
     # Read list of emails.  Assume one email per line.
-    infile = open("emails.txt", 'r')
+    infile = open("bb_only_emails.txt", 'r')
     emails = infile.readlines()
 
-    f = open('wishlist.txt', 'w+')
+    LINE_BUFFERED = 1
+
+    f = open('wishlist.txt', 'w+', LINE_BUFFERED)
+
+    i = 0
 
     for email in emails:
+
+        i += 1
 
         # Remove the newline character from the end of the email.
         email = email.replace('\n', '')
@@ -54,7 +60,7 @@ def main():
 
         wishlist_entry = email + " (" + wishlist_id + "): " + wishlist
 
-        print(wishlist_entry)
+        print(str(i) + ": " + wishlist_entry)
 
         f.write(wishlist_entry)
         f.write('\n')
