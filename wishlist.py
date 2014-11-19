@@ -19,6 +19,9 @@ AMAZON_WISHLIST_EMAIL_URL = 'http://www.amazon.com/gp/registry/search.html?ie=UT
 # URL used to retrieve Amazon wish lists from wish list IDs (see https://github.com/doitlikejustin/amazon-wish-lister)
 AMAZON_WISHLIST_ID_URL = 'http://localhost:8888/wishlist.php/?id='
 
+# Delimiter used in the output file.
+DELIMITER = '\t'
+
 def main():
 
     # Configure mechanize.  It's used for web page scraping and site crawling.
@@ -33,12 +36,12 @@ def main():
     br.set_handle_robots(False)
 
     # Read list of emails.  Assume one email per line.
-    infile = open("bb_only_emails.txt", 'r')
+    infile = open("emails.txt", 'r')
     emails = infile.readlines()
 
     LINE_BUFFERED = 1
 
-    f = open('wishlist.txt', 'w+', LINE_BUFFERED)
+    f = open('wishlist.csv', 'w+', LINE_BUFFERED)
 
     i = 0
 
@@ -58,7 +61,7 @@ def main():
         else:
             wishlist = retrieve_wishlist(wishlist_id, br)
 
-        wishlist_entry = email + " (" + wishlist_id + "): " + wishlist
+        wishlist_entry = email + DELIMITER + wishlist_id + DELIMITER + wishlist
 
         print(str(i) + ": " + wishlist_entry)
 
