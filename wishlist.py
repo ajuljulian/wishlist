@@ -41,7 +41,7 @@ def main():
 
     LINE_BUFFERED = 1
 
-    f = open('wishlist.csv', 'w+', LINE_BUFFERED)
+    f = open('wishlists.txt', 'w+', LINE_BUFFERED)
 
     i = 0
 
@@ -83,6 +83,12 @@ def retrieve_wishlist_id(email, br):
 
     response1_data = response1.get_data()
 
+    r.close()
+
+    # Without clearing browser history, mechanize will collectively store all browser history in memory
+    # leading to potential memory pressure.
+    br.clear_history()
+    
     match = re.search(r'action="/gp/registry/wishlist/([a-zA-Z0-9]+)', response1_data)
 
     if match:
@@ -102,6 +108,12 @@ def retrieve_wishlist(wishlist_id, br):
     r= br.open(AMAZON_WISHLIST_ID_URL + wishlist_id)
 
     html = r.read()
+
+    r.close()
+
+    # Without clearing browser history, mechanize will collectively store all browser history in memory
+    # leading to potential memory pressure.
+    br.clear_history()
 
     return html
 
