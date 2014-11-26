@@ -2,15 +2,18 @@ from mrjob.job import MRJob
 
 import ast
 
-# List of (lowercase) keywords to search for in the wishlist names.
-keywords = map(lambda x:x.lower(), ["Nike", "Zumba", "fuel band", "iPhone"])
-
-# Map Reduce job to search a list of wishlists for specific keywords and, if a keyword is found, output the
-# wishlist owner's email together with the keyword and when the corresponding item was added to the wishlist.
-# Run the script from the command line like this:
-# python mr_wishlist_keywords.py wishlists.csv
+# Map Reduce job to search a list of wishlists for specific terms and, if a term is found, output the
+# wishlist owner's email together with the wishlist item name and date it was added.
+# Run the script from the command line like this ("terms.txt" is the file containing a newline-delimited set of terms):
+# python mr_wishlist_keywords.py wishlists.csv --file terms.txt
 
 class MRWishlistKeywords(MRJob):
+
+    def mapper_init(self):
+
+        # Read in a list of terms to search against in the wishlist names.  Convert to lowercase.
+        global terms
+        terms = map(lambda x:x.lower(), [line.strip() for line in open('terms.txt')])
 
     def mapper(self, _, line):
 
@@ -30,7 +33,8 @@ class MRWishlistKeywords(MRJob):
             try:
                 wishlist = ast.literal_eval(values[2]) # from a string representation to actual list.
             except ValueError:
-                print "Skipping wishlist for " + email + "\t" + values[2] + " is not a literal."
+                # Bad data - skip the line
+                pass
             else:
                 if wishlist:
                     for wishlist_item in wishlist:
@@ -38,17 +42,17 @@ class MRWishlistKeywords(MRJob):
                         # Take the wishlist name and split on the words.
                         words = map(lambda x:x.lower(), wishlist_item["name"].split())
 
-                        # Find the common words in the wishlist name and the keywords we're looking for.
-                        common_words = list(set(words).intersection(keywords))
+                        # Find the common strings in the wishlist name and the terms we're looking for.
+                        common_terms = [x for x in terms if x in wishlist_item["name"].lower()]
 
-                        if common_words:
-                            for common_word in common_words:
+                        if common_terms:
+                            for common_word in common_terms:
                                 # The key will be the email.  The value will be a tuple comprise of the keyword and the date
                                 # the corresponding item was added.
-                                yield email, (common_word, wishlist_item["date-added"])
+                                yield email, (wishlist_item["name"], wishlist_item["date-added"])
 
     def reducer(self, key, values):
-        # The key will be the email and the value will be the list of keywords and the dates the corresponding items
+        # The key will be the email and the value will be the list of wishlist names and the dates the corresponding items
         # were added.
         yield key, list(values)
 
